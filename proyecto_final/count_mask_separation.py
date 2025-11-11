@@ -58,7 +58,6 @@ while True:
     for cnt in contours:
         area = cv2.contourArea(cnt)
         if area > 50 and area < 1000: 
-            print(cv2.boundingRect(cnt))
             x, y, w, h = cv2.boundingRect(cnt)
 
             cx, cy = x + w // 2, y + h // 2 #centroid

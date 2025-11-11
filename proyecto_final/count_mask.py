@@ -52,7 +52,6 @@ while True:
     for cnt in contours:
         area = cv2.contourArea(cnt)
         if area > 50 and area < 1000: 
-            print(cv2.boundingRect(cnt))
             x, y, w, h = cv2.boundingRect(cnt)
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
             car_count += 1
@@ -66,7 +65,7 @@ while True:
     cv2.imshow("Car Counter", frame)
 
 
-    if cv2.waitKey(30) & 0xFF == 27:  # press ESC to exit
+    if cv2.waitKey(30) & 0xFF == 27:  # ESC to exit
         break
 
 cap.release()
