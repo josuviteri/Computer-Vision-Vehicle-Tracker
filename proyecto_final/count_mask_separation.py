@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # 1. Open the video stream
-video_path = "media/proyecto/Abajo_Corto.mp4" 
+video_path = "../media/proyecto/Abajo_Corto.mp4" 
 
 try:
     cap = cv2.VideoCapture(video_path)
@@ -91,3 +91,5 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
+#TODO if a box is at the same position as a already drawn box to 10 frames do not create it again
