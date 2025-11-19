@@ -28,14 +28,14 @@ mask = np.zeros((720, 1280), dtype=np.uint8)
 cv2.fillPoly(mask, [roi_points], 255)
 
 
-distance_threshold = 50
+distance_threshold = 55
 
 while True:
     ret, frame = cap.read()
     if not ret:
         break
 
-    # Resize for performance (optional)
+    # Resize for performance 
     frame = cv2.resize(frame, (1280, 720))
 
     # 4. Apply background subtraction
@@ -44,9 +44,25 @@ while True:
     # 5. Apply ROI mask
     fgMask = cv2.bitwise_and(fgMask, fgMask, mask=mask)
 
-    # 6. Clean up the mask
-    fgMask = cv2.medianBlur(fgMask, 5)
-    fgMask = cv2.threshold(fgMask, 200, 255, cv2.THRESH_BINARY)[1]
+    # Remove shadows (MOG2 marks shadows with value 127)
+    fgMask[fgMask == 127] = 0
+
+    # 6. Clean up the mask: blur + morphological ops to reduce noise and fill holes
+    fgMask = cv2.GaussianBlur(fgMask, (9, 9), 0)
+    # increase if noisy 7 7 or 9 9
+    # decrease to preserve more details 3 3
+
+    _, fgMask = cv2.threshold(fgMask, 200, 255, cv2.THRESH_BINARY) 
+    # lowering: more permisive mask
+    # raising, stricter mask
+
+    # Morphological opening to remove small noise, closing to fill small holes
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    fgMask = cv2.morphologyEx(fgMask, cv2.MORPH_OPEN, kernel, iterations=1)
+    fgMask = cv2.morphologyEx(fgMask, cv2.MORPH_CLOSE, kernel, iterations=2)
+
+    # Optional dilation to connect nearby components (tune iterations as needed)
+    fgMask = cv2.dilate(fgMask, kernel, iterations=1)
 
     # 7. Find contours
     contours, _ = cv2.findContours(fgMask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -57,7 +73,7 @@ while True:
 
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        if area > 50 and area < 1000: 
+        if area > 70 and area < 700: 
             x, y, w, h = cv2.boundingRect(cnt)
 
             cx, cy = x + w // 2, y + h // 2 #centroid
@@ -70,7 +86,7 @@ while True:
                     too_close = True
                     break
 
-            if too_close:
+            if too_close: 
                 continue
 
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
@@ -92,4 +108,4 @@ while True:
 cap.release()
 cv2.destroyAllWindows()
 
-#TODO if a box is at the same position as a already drawn box to 10 frames do not create it again
+#TODO adjust the mask in order to correctly see the windshields of the cars
