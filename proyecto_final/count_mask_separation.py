@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # 1. Open the video stream
-video_path = "../media/proyecto/Abajo_Corto.mp4" 
+video_path = "media/proyecto/Abajo_Corto.mp4" 
 
 try:
     cap = cv2.VideoCapture(video_path)
