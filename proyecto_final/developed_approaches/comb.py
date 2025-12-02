@@ -110,6 +110,9 @@ max_area = 700
 trajectory = {}
 max_trail_length = 40
 
+going_down = 0
+going_right = 0
+
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -189,6 +192,21 @@ while True:
     for objectID, pts in trajectory.items():
         if len(pts) < 2:
             continue
+        start = pts[0]
+        end = len(pts) - 1
+
+        # Compute angle (degrees) between the vector from first to last point
+        dy = pts[end][1] - pts[0][1]
+        dx = pts[end][0] - pts[0][0]
+        angle = math.degrees(math.atan2(dy, dx))
+
+        if objectID == 24:
+                print(f"Object {objectID} angle: {angle}")
+
+        if 26 <= angle <= 38:
+            going_down += 1
+        elif -10 < angle < -30:
+            going_right += 1
 
         for i in range(1, len(pts)):
             cv2.line(frame,
@@ -200,7 +218,13 @@ while True:
 
     cv2.polylines(frame, [roi_points], True, (255, 0, 0), 2)
     cv2.putText(frame, f"Tracked: {len(objects)}", (20, 40),
-                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 255), 2)
+                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+    
+    cv2.putText(frame, f"Going Down: {going_down}", (20, 70),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+
+    cv2.putText(frame, f"Going Right: {going_right }", (20, 100),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
 
     cv2.imshow("Mask", fgMask)
     cv2.imshow("Hybrid Tracker", frame)
