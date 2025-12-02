@@ -175,7 +175,7 @@ while True:
         if len(trajectory[objectID]) > max_trail_length:
             trajectory[objectID].pop(0)
 
-    # DRAW BBOXES
+    # DRAW BOXES
 
     for objectID, bbox in objects.items():
         x, y, w, h = bbox
@@ -210,9 +210,9 @@ while True:
 
         for i in range(1, len(pts)):
             cv2.line(frame,
-                     pts[i - 1],
-                     pts[i],
-                     (0, 150, 255), 2)
+                    pts[i - 1],
+                    pts[i],
+                    (0, 150, 255), 2)
 
     # UI
 
