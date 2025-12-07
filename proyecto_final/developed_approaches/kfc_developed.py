@@ -23,6 +23,9 @@ car_total_count = 0
 
 cars_moving_y = 0
 cars_moving_x = 0
+cars_moving_right = 0
+cars_moving_left = 0
+
 
 # KCF trackers list
 trackers = []
@@ -39,6 +42,9 @@ going_right = 0
 # Per-object last computed angles (degrees)
 angles = {}
 
+# Per-object direction classification (to track active movers)
+car_directions = {}  # car_id -> "x" or "y" or None
+
 
 
 while True:
@@ -48,6 +54,12 @@ while True:
 
     frame = cv2.resize(frame, (1280, 720))
     frame_id += 1
+
+    # Reset real-time direction counters each frame
+    cars_moving_y = 0
+    cars_moving_x = 0
+    cars_moving_right = 0
+    cars_moving_left = 0
 
     # Update all trackers first
     new_trackers = []
@@ -96,24 +108,55 @@ while True:
                 angle_rad = np.arctan2(-dy, dx)
                 angle_deg = (np.degrees(angle_rad) + 360.0) % 360.0
                 angles[car_id] = angle_deg
+                position_array = [x1, y1, x2, y2]
 
             integ_angle = int(angle_deg)
             var_angle = ""
             color_ang = 0
 
-            #TODO ARREGLAR LOGICA DE ANGULOS
-
-            #filtro para y
-            if  integ_angle < 7 and integ_angle > 35:
+            # Classify direction based on angle
+            # Moving in Y axis: angles between 295 and 350 (moving down)
+            if integ_angle < 350 and integ_angle > 295:
                 cars_moving_y += 1
                 color_ang = 128
                 var_angle = "y"
+                car_directions[car_id] = "y"
 
-            #filtro para x
-            elif integ_angle > 8 and integ_angle < 35:
+            # Moving in X axis: angles between 0 and 35 (moving right)
+            elif integ_angle > 0 and integ_angle < 35:
                 cars_moving_x += 1
+                cars_moving_right += 1
                 color_ang = 255
                 var_angle = "x"
+                car_directions[car_id] = "x"
+
+            # Moving in X axis: angles between 170 and 210(moving left)
+            elif integ_angle > 170 and integ_angle < 210: 
+                cars_moving_x += 1
+                cars_moving_left += 1
+                color_ang = 255
+                var_angle = "x"
+                car_directions[car_id] = "x"
+            else:
+                car_directions[car_id] = None
+
+            # Debug output for specific car
+            #if car_id == 8:
+            #    print(f"Car ID {car_id} - Position Array: {position_array} - Angle: {integ_angle}° - Var: {var_angle}")
+
+            """
+            yendo en el eje y hacia abajo son entre 321 y 325 grados
+            yendo en el eje x hacia la derecha son entre 18 y 15 grados 
+            yendo en el eje x hacia la izquierda son 190 grados
+            yendo en el eje y hacia arriba son 150 grados
+
+            por lo que: menos de 359 ya esta bajando al eje y
+            por lo que hay 15 grados de margen, 
+
+            eje x es 15 derecha y 190 izquierda, por lo que rango entre 35 y 0 grados derecha y entre 170 y 210 grados izquierda, 
+            eje y es 320 abajo por lo que el rango es entre 350 y 295 grados
+            """
+
 
             # Draw bounding box and ID + angle
             cv2.rectangle(frame, (x, y), (x+w, y+h), (255,color_ang,0), 2)
@@ -130,6 +173,12 @@ while True:
     # Keep the updated lists
     trackers = new_trackers
     tracked_ids = new_tracked_ids
+
+    # Remove direction classifications for cars that are no longer tracked
+    active_ids = set(tracked_ids)
+    for car_id in list(car_directions.keys()):
+        if car_id not in active_ids:
+            del car_directions[car_id]
 
     current_centers = []
     for tid in tracked_ids:
@@ -184,13 +233,22 @@ while True:
     cv2.polylines(frame, [roi_points], True, (255, 0, 0), 2)
 
     # Display total car count
-    cv2.putText(frame, f"Total Cars: {car_total_count}", (50, 50),
-                cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0,255,0), 3)
-
-    cv2.putText(frame, f"Cars Moving in the Y axis: {cars_moving_y}", (50, 100),
+    cv2.putText(frame, f"Total Cars Detected: {car_total_count}", (50, 50),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0,0,255), 3)
+    
+    cv2.putText(frame, f"Live Car Count: {cars_moving_x + cars_moving_y}", (50, 100),
                 cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0,0,255), 3)
 
-    cv2.putText(frame, f"Cars Moving in the X axis: {cars_moving_x}", (50, 150),
+    cv2.putText(frame, f"Cars Moving in the Y axis: {cars_moving_y}", (50, 150),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0,0,255), 3)
+
+    cv2.putText(frame, f"Cars Moving in the X axis: {cars_moving_x}", (50, 200),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0,0,255), 3)
+    
+    cv2.putText(frame, f"X (Right): {cars_moving_right}", (75, 250),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0,0,255), 3)
+
+    cv2.putText(frame, f"X (Left): {cars_moving_left}", (75, 300),
                 cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0,0,255), 3)
 
     cv2.imshow("Tracking", frame)
