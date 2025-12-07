@@ -118,7 +118,7 @@ while True:
             # Moving in Y axis: angles between 295 and 350 (moving down)
             if integ_angle < 350 and integ_angle > 295:
                 cars_moving_y += 1
-                color_ang = 128
+                color_ang = 0
                 var_angle = "y"
                 car_directions[car_id] = "y"
 
@@ -138,6 +138,7 @@ while True:
                 var_angle = "x"
                 car_directions[car_id] = "x"
             else:
+                color_ang = 125
                 car_directions[car_id] = None
 
             # Debug output for specific car
