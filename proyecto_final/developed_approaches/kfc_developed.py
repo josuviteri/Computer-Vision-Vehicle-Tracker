@@ -234,25 +234,25 @@ while True:
     cv2.polylines(frame, [roi_points], True, (255, 0, 0), 2)
 
     # Display total car count
-    cv2.putText(frame, f"Total Cars Detected: {car_total_count}", (50, 50),
+    cv2.putText(frame, f"-Total Vehicles Detected: {car_total_count}", (50, 50),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 2)
     
-    cv2.putText(frame, f"Live Car Count: {cars_moving_x + cars_moving_y}", (50, 80),
+    cv2.putText(frame, f"-Live Vehicle Count: {cars_moving_x + cars_moving_y}", (50, 80),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 2)
 
-    cv2.putText(frame, f"Cars Moving in the Y axis: {cars_moving_y}", (350, 50),
+    cv2.putText(frame, f"-Vehicles Moving in the Y axis: {cars_moving_y}", (450, 50),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 2)
 
-    cv2.putText(frame, f"Cars Moving in the X axis: {cars_moving_x}", (350, 80),
+    cv2.putText(frame, f"-Vehicles Moving in the X axis: {cars_moving_x}", (450, 80),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 2)
     
-    cv2.putText(frame, f"X (Going Right): {cars_moving_right}", (750, 50),
+    cv2.putText(frame, f"-X (Going Right): {cars_moving_right}", (900, 50),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 2)
     
-    cv2.putText(frame, f"X (Going Left): {cars_moving_left}", (750, 80),
+    cv2.putText(frame, f"-X (Going Left): {cars_moving_left}", (900, 80),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 2)
     
-    cv2.putText(frame, f"Cars Transitioning: {cars_transiting}", (50, 110),
+    cv2.putText(frame, f"-Vehicles Transitioning: {cars_transiting}", (50, 110),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 2)
 
     cv2.imshow("Tracking", frame)
