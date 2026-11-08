@@ -1,8 +1,6 @@
 # Plan de mejora — Vehicle Tracker (CV clásico)
 
 > Restricción: **sin ML/DL**. Solo técnicas clásicas de OpenCV (sustracción de fondo, morfología, KCF/CSRT, filtro de Kalman, homografía…).
-> Filosofía: proyecto académico → **mejor, no perfecto**. Cada fase debe dejar el sistema funcionando.
-
 ---
 
 ## Diagnóstico del script actual (`original_experiments/developed_approaches/kfc_developed.py`)
@@ -184,6 +182,6 @@ Con una cámara calibrada, las velocidades mostradas son del orden esperado para
 | Calibración imprecisa → velocidades con error | Usar marcas viales de medida conocida; presentar la velocidad como "aproximada" |
 
 ## Decisiones abiertas
-- [ ] Qué cámara(s) de webcamtaxi usar (las eliges tú).
+- [ ] Qué cámara(s) de webcamtaxi usar
 - [ ] Contar por confirmación o por cruce de línea (propuesta: línea si la vía lo permite).
 - [ ] KCF frente a CSRT: CSRT es más preciso pero más lento; decidirlo midiendo FPS en la fase 2.
