@@ -1,6 +1,7 @@
 import os
 import queue
 import threading
+from typing import List
 import yt_dlp
 import cv2
 import time
@@ -72,6 +73,8 @@ class StreamReader():
         self._next_due = 0.0
 
         self.thread = threading.Thread(daemon=True, target=self._reader_loop)
+
+    def start(self):
         self.thread.start()
 
     def _open(self):
@@ -124,7 +127,7 @@ class StreamReader():
             dt = time.monotonic() - t0
 
             if dt > 1.0 and not ok:
-                print(f"[stream] read() fallo tras {dt:.2f}s", flush=True)
+                print(f"[stream] read() failed after {dt:.2f}s", flush=True)
 
             if ok:
                 failed = 0
@@ -177,3 +180,12 @@ class StreamReader():
         self.thread.join(timeout=READ_TIMEOUT_MS / 1000 + 2)
         if self.capture is not None:
             self.capture.release()
+
+    def first_frame(self):
+        """Read a frame and select an ROI from it."""
+        ok, frame = self.capture.read()
+        if ok:
+            return frame
+        else:
+            print("[stream] failed to read first frame", flush=True)
+            return None
