@@ -83,9 +83,3 @@ class RoiSelector:
 
         cv2.destroyWindow(window_name)
         return self.roi
-
-
-
-def select_roi(frame) -> Optional[Rectangle]:
-    """Receive a frame and return its ROI as a (4, 2) int32 array after four clicks."""
-    return RoiSelector(frame).select()
