@@ -4,10 +4,10 @@ import numpy as np
 
 
 Point = tuple[int, int]
-Rectangle = tuple[int, int, int, int]  # (x, y, width, height)
+Rectangle = np.ndarray  # int32 array of shape (4, 2): the four clicked corners
 
 class RoiSelector:
-    """Select a rectangular ROI by clicking its four corners."""
+    """Select a quadrilateral ROI by clicking its four corners."""
 
     def __init__(self, frame):
         self.frame = frame
@@ -22,11 +22,7 @@ class RoiSelector:
         print(f"Point {len(self.points)}/4: {(x, y)}")
 
         if len(self.points) == 4:
-            left = min(point[0] for point in self.points)
-            top = min(point[1] for point in self.points)
-            right = max(point[0] for point in self.points)
-            bottom = max(point[1] for point in self.points)
-            self.roi = (left, top, right - left, bottom - top)
+            self.roi = np.array(self.points, dtype=np.int32)
 
     def select(self, window_name: str = "ROI Selection") -> Optional[Rectangle]:
         """Display the frame until four corners are selected or selection is cancelled."""
@@ -91,5 +87,5 @@ class RoiSelector:
 
 
 def select_roi(frame) -> Optional[Rectangle]:
-    """Receive a frame and return its rectangular ROI after four clicks."""
+    """Receive a frame and return its ROI as a (4, 2) int32 array after four clicks."""
     return RoiSelector(frame).select()

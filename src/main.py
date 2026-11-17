@@ -9,7 +9,7 @@ urls de ejemplo:
 import argparse
 import time
 import stream
-import roi
+import roi as roi_selector
 import cv2
 
 
@@ -27,25 +27,34 @@ def main() -> int:
     # El StreamReader ya emite los frames a ritmo constante (FPS del video)
     # --fps solo se usa si el stream no informa de sus FPSs
     reader = stream.StreamReader(args.url, fps=args.fps)
-    leer = True
+
 
     first_frame = reader.first_frame()
     if first_frame is not None:
-        roi_selector = roi.select_roi(first_frame)  # lee un frame para seleccionar el ROI
-        if roi_selector is not None:
-            print(f"ROI selected: {roi_selector}")
+        roi = roi_selector.select_roi(first_frame)  # lee un frame para seleccionar el ROI
+        if roi is not None:
+            print(f"ROI selected: {roi}")
+        else:
+            print("ROI selection cancelled")
+            return 1
+    else:
+        print("Could not read first frame")
+        return 1
 
     reader.start()  # inicia el hilo de lectura de frames
 
-    while leer:
+    read = True
+
+    while read:
         ok, frame, video_time, frame_id = reader.read()
 
         if ok:
+            cv2.polylines(frame, [roi], isClosed=True, color=(0, 255, 255), thickness=2)
             cv2.imshow("Stream", frame)
             print(f"Frame ID: {frame_id}, video_time: {video_time:.3f}s")
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
-            leer = False
+            read = False
         if not ok:
             time.sleep(0.002)
 
