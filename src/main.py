@@ -2,7 +2,7 @@
 Proyect entry point
 python src/main.py --url <url>
 
-example urls:
+proposed url:
     https://www.youtube.com/watch?v=Jy1Y9f8NEY0
 
 The more objects tracked at once, the slower the program will run. The detection frequency can be reduced with --detect-every N.
@@ -31,7 +31,7 @@ import tracker
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--url", help="URL of the video to process", required=True)
+    parser.add_argument("--url", help="URL of the video to process", default="https://www.youtube.com/watch?v=Jy1Y9f8NEY0")
     parser.add_argument("--fps", help="Fallback FPS if the stream does not report one", type=int, default=30)
     parser.add_argument("--detect-every", help="Extract detections every N frames", type=int, default=3)
     parser.add_argument("--tracker", help="Tracker type", choices=["KCF", "CSRT"], default="KCF")

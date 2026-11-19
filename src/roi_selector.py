@@ -76,8 +76,6 @@ class RoiSelector:
             )
             cv2.imshow(window_name, preview)
             if cv2.waitKey(1) & 0xFF == ord("q"):
-                print("ROI selection cancelled")
-                self.roi = None
                 break
 
         cv2.destroyWindow(window_name)
