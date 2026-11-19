@@ -2,68 +2,113 @@
 
 # Detector y Rastreo de Vehículos - Visión por Computador
 
-Este proyecto implementa un sistema de visión por computador capaz de detectar, rastrear y contar vehículos en un cruce de tráfico real utilizando técnicas de procesamiento de video tradicionales y eficientes.
+Sistema de visión por computador capaz de detectar, rastrear y contar objetos (como vehículos en un cruce) visibles desde una cámara fija emitiendo en vivo, utilizando técnicas clásicas de procesamiento de video.
 
-## Descripción del Proyecto
+El objetivo es detectar y rastrear objetos (como vehículos, personas, animales, etc.) en directo mediante emisiones en vivo, de forma que:
+* Cada vehículo conserve **un único ID** durante todo su recorrido.
+* Cada vehículo se cuente **una sola vez**, sin inflar el total por re-adquisiciones.
+* Se filtren falsos positivos por área y por confirmación en varios frames.
 
-El objetivo principal es desarrollar un sistema que pueda detectar y rastrear diversos tipos de vehículos (coches, autobuses, motocicletas) mediante una cámara fija orientada a un cruce. El sistema no solo realiza el seguimiento, sino que también:
-* Cuenta cuántos vehículos circulan en cada dirección.
-* Filtra detecciones por área mínima para evitar falsos positivos.
-* Determina el sentido y el ángulo de desplazamiento.
+Pensado como base para gestión de tráfico peatonal, de vehiculos o de animales en zonas protegidas.
 
-Esta herramienta está diseñada para ser útil en la gestión de tráfico, permitiendo potencialmente el control adaptativo de semáforos para mejorar la fluidez y evitar accidentes.
+[![License](https://img.shields.io/github/license/josuviteri/Computer-Vision-Vehicle-Tracker)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/josuviteri/Computer-Vision-Vehicle-Tracker)](https://github.com/josuviteri/Computer-Vision-Vehicle-Tracker/releases)
+[![Contributors](https://img.shields.io/github/contributors/josuviteri/Computer-Vision-Vehicle-Tracker)](https://github.com/josuviteri/Computer-Vision-Vehicle-Tracker/graphs/contributors)
+
 
 ## Origen de los Datos
 
-* **Fuente:** Cámara de vigilancia pública.
-* **Ubicación:** Un cruce en Buenos Aires, Argentina.
-* **Condiciones:** Perspectiva fija con iluminación variable (clima/hora), tráfico continuo y movimientos de cámara ocasionales por viento.
+* **Fuente:** cámaras de vigilancia públicas en directo (YouTube / HLS), por ejemplo las disponibles en [webcamtaxi](https://www.webcamtaxi.com/).
+* **Ejemplo:** cruces de tráfico, zonas peatonales, bosques....
+* **Condiciones:** perspectiva fija con iluminación variable, tráfico continuo y movimientos de cámara ocasionales por viento. COmo las emisiones son en vivo, las condiciones de captura pueden variar, y con ello, los resultados del sistema.
 
 ## Metodología y Tecnología
 
-A diferencia de las soluciones modernas basadas en Deep Learning (como YOLO), este proyecto opta por un enfoque clásico debido a restricciones de hardware (falta de GPU dedicada) y requisitos académicos.
+Se opta por un enfoque clásico por requisitos académicos, pero una versión destinada a producción implementaría sistemas basados en redes convolucionales profundas y arquitecturas transformers (CNNs y ViTs). 
 
+Tres fuentes de información se combinan y cada una responde a una pregunta distinta:
 
-### Algoritmo Seleccionado: KCF
-Se evaluaron diversos algoritmos de seguimiento incluidos en OpenCV (`BOOSTING`, `MIL`, `TLD`, `MEDIANFLOW`, `GOTURN`, `MOSSE`, `CSRT`).
-* **Elección Final:** **KCF (Kernelized Correlation Filter)**.
-* **Motivo:** Ofrece el mejor equilibrio entre rendimiento y precisión en tiempo real sin necesidad de redes neuronales.
-* **Ventajas:** Suaviza el seguimiento y evita la duplicación de detecciones en comparación con métodos puramente basados en diferencia de píxeles.
+| Componente | Pregunta que responde |
+|---|---|
+| **Sustracción de fondo (MOG2)** | ¿Dónde hay algo moviéndose? |
+| **KCF / CSRT** | ¿Dónde está *este* objeto? |
+| **Filtro de Kalman** (velocidad constante) | ¿Dónde *debería* estar según su movimiento previo? |
+
+La idea clave es que *un objeto no desaparece de repente*: si KCF falla en un frame, el track no se elimina, sigue avanzando con la predicción de Kalman y puede recuperarse al volver a ser detectado.
+
+### Elección del tracker
+Se evaluaron los trackers de OpenCV (`BOOSTING`, `MIL`, `TLD`, `MEDIANFLOW`, `GOTURN`, `MOSSE`, `CSRT`, `KCF`). Se usa **KCF** por defecto por su equilibrio entre velocidad y precisión, **CSRT** está disponible con `--tracker CSRT` (más preciso, más lento).
+
+## Estructura del Proyecto
+
+```
+src/
+  main.py          # Punto de entrada (CLI)
+  stream.py        # Resolución de URL (yt-dlp) y lector de stream en hilo con prebuffer y reconexión
+  roi_selector.py  # Selección interactiva del ROI (polígono) sobre el primer frame
+  detector.py      # Sustracción de fondo + morfología -> lista de Detection
+  tracker.py       # Track (KCF + Kalman) y TrackManager (asociación, ciclo de vida, conteo)
+  analytics.py     # (pendiente) homografía, velocidad, dirección
+  draw.py          # (pendiente) overlay / HUD
+original_experiments/   # Enfoques iniciales (referencia)
+PLAN.md                 # Plan de mejora por fases
+```
+
+## Instalación
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+> Se requiere `opencv-contrib-python<5` ya que OpenCV 5 ya no incluye KCF.
+
+## Uso
+
+```bash
+python src/main.py
+```
+
+| Argumento | Descripción | Por defecto |
+|---|---|---|
+| `--url` | URL del vídeo/directo a procesar | https://www.youtube.com/watch?v=Jy1Y9f8NEY0 |
+| `--fps` | FPS de reserva si el stream no informa los suyos | `30` |
+| `--detect-every` | Extraer detecciones cada N frames | `3` |
+| `--tracker` | Tipo de tracker: `KCF` o `CSRT` | `KCF` |
+
+Al ejecutarse se muestra el primer frame para dibujar el ROI clickando los bordes del rectángulo deseado. 
+
+Pulsa `q` en la ventana o `CTRL + C` en la terminal para salir.
 
 ## Lógica del Sistema
 
-El flujo de trabajo del algoritmo es el siguiente:
+1. **Stream:** `StreamReader` resuelve la URL con `yt-dlp`, lee en un hilo y entrega los frames a ritmo constante (FPS del vídeo) tras un prebuffer inicial, reconecta si el stream se corta.
+2. **ROI:** el usuario selecciona un polígono sobre el primer frame, el procesamiento se limita a esa zona.
+3. **Detección:** MOG2 se actualiza en **todos** los frames, los contornos se extraen solo cada `--detect-every` frames (apertura + cierre morfológico). Se filtra por área mínima/máxima **relativa al tamaño del frame**. Los primeros 100 frames son de calentamiento del modelo de fondo (sin detecciones).
+4. **Predicción y seguimiento:** en cada frame, Kalman predice la posición y KCF la actualiza. Si KCF falla o da un salto incoherente con la predicción, se suma un fallo y se usa la posición de Kalman.
+5. **Asociación:** en los frames de detección se asignan detecciones a tracks con el **algoritmo húngaro** (coste = 1 − IoU contra la posición *predicha*). Una detección emparejada corrige Kalman y **reinicializa KCF** (evita la deriva). Una detección sin emparejar intenta primero **recuperar un track `LOST`** cercano (conserva el ID) y, si no hay ninguno, crea un track nuevo.
+6. **Ciclo de vida:** `TENTATIVE` → `CONFIRMED` tras 3 aciertos (solo estos se dibujan y cuentan) → `LOST` tras 10 fallos → eliminado tras 60, si sale del ROI o si es un falso positivo de pocos frames.
+7. **Duplicados:** dos tracks con IoU > 0.6 durante 3 frames se fusionan conservando el ID más antiguo.
+8. **Conteo:** un vehículo se cuenta una única vez, al pasar a `CONFIRMED`.
 
-1.  **Inicialización:** Carga del video y definición de una resolución predefinida.
-2.  **Región de Interés (ROI):** Se aplica un ROI para centrar el procesamiento en la zona activa del cruce.
-3.  **Detección y Filtrado:**
-    * Se utilizan variables globales para establecer distancias y áreas mínimas/máximas entre vehículos.
-    * Se filtran detecciones excesivamente cercanas o con áreas fuera de los límites.
-4.  **Seguimiento (Tracking):**
-    * El tracker KCF se actualiza cada **5 frames** (en lugar de cada uno) para mitigar pérdidas cuando los vehículos aceleran o maniobran bruscamente.
-    * Se asigna un ID único a cada vehículo.
-5.  **Cálculo de Trayectoria:**
-    * Se guardan las posiciones de los últimos 40 frames.
-    * Se calcula una línea entre el primer y último punto para obtener el ángulo (valor entre 0 y 356) y el sentido del desplazamiento.
+## Visualización
 
-## Visualización y Resultados
+Sobre el vídeo se dibuja el ROI, el bounding box y el ID de cada vehículo confirmado, y un contador con el **total** y los vehículos **activos**.
 
-El sistema muestra el video procesado en tiempo real con la siguiente información superpuesta:
+## Fases del Proyecto
 
-* **Bounding Box:** Dibuja un cubo alrededor del vehículo con su ID y ángulo de trayectoria.
-* **Código de Colores:** Para identificar la dirección visualmente:
-    * **Azul Claro:** Movimiento en Eje X.
-    * **Azul Oscuro:** Movimiento en Eje Y.
-    * **Azul Neutro:** Transición entre ejes.
-* **Estadísticas en Pantalla:**
-    * Recuento total de vehículos.
-    * Vehículos presentes en el instante.
-    * Desglose de movimiento por ejes (X e Y) y direcciones (Izquierda/Derecha).
+- Fase 0 — Lectura de streaming en directo (hilo, prebuffer, reconexión)
+- Fase 1 — Selección interactiva del ROI
+- Fase 2 — Tracking robusto (KCF + Kalman + húngaro, ciclo de vida, conteo único)
+- Fase 3 — Analítica: homografía, velocidad, dirección y trayectorias (`analytics.py`, `draw.py`)
+- Persistencia del ROI por cámara, grabación de clips y evaluación cuantitativa (ver [PLAN.md](PLAN.md))
 
-### Limitaciones Conocidas
-* **Oclusiones:** Aglomeraciones de vehículos en puntos muy cercanos pueden causar fallos.
-* **Pérdida de Trackers:** Puede ocurrir en maniobras muy bruscas, aunque se mitigó ajustando la tasa de actualización del tracker.
-* **Iluminación:** Sensible a variaciones fuertes de luz.
+## Limitaciones Conocidas
+
+* **Oclusiones:** aglomeraciones de vehículos muy próximos pueden fusionarse en una sola detección.
+* **Maniobras bruscas:** pueden hacer fallar a KCF, se mitiga con Kalman y la recuperación de tracks `LOST`.
+* **Iluminación:** la sustracción de fondo es sensible a cambios fuertes de luz y a movimientos de cámara, aunque en los streams propuestos no se esperan.
+* **Latencia:** el prebuffer del stream introduce un retraso fijo de unos segundos respecto al directo.
 
 ## Referencias
 
@@ -73,4 +118,4 @@ El sistema muestra el video procesado en tiempo real con la siguiente informaci�
 * Material docente de Procesamiento de Vídeo, Universidad de Deusto.
 
 ---
-*Josu Viteri | 2025/12*
+*Josu Viteri | 2026/11*
