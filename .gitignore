@@ -1,5 +1,3 @@
-/env_vision
-/media
 /report
-.venv/
+.*
 src/__pycache__/

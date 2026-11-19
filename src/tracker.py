@@ -44,6 +44,8 @@ class Track():
         self.age = 0
         self.bbox = tuple(int(v) for v in detection.bbox)
         self.history = [center(self.bbox)]
+        self.anchor = self.history[0]  # ultima posicion "significativa"
+        self.still_frames = 0
 
         cx, cy = center(self.bbox)
         kf = cv2.KalmanFilter(4, 2)  # estado (cx, cy, vx, vy), medida (cx, cy)
@@ -72,6 +74,15 @@ class Track():
         p = self.kalman.predict()
         self.pred = (float(p[0, 0]), float(p[1, 0]))
         return self.pred
+
+    def update_still(self, min_move):
+        # Cuenta frames seguidos sin alejarse de la posicion ancla
+        c = center(self.bbox)
+        if np.hypot(c[0] - self.anchor[0], c[1] - self.anchor[1]) > min_move:
+            self.anchor = c
+            self.still_frames = 0
+        else:
+            self.still_frames += 1
 
     def predicted_bbox(self):
         _, _, w, h = self.bbox
@@ -112,7 +123,10 @@ class Track():
 
 class TrackManager():
     def __init__(self, roi, min_hits=3, max_misses_lost=10, max_misses_delete=60,
-                 max_assoc_cost=0.7, dup_iou=0.6, dup_frames=3, tracker_type="KCF"):
+                 max_assoc_cost=0.7, dup_iou=0.6, dup_frames=3, tracker_type="KCF",
+                 max_still_frames=150, still_move=5):
+        self.max_still_frames = max_still_frames  # frames quieto antes de eliminar
+        self.still_move = still_move              # px minimos para considerar movimiento
         self.roi = np.asarray(roi, np.int32)
         self.min_hits = min_hits
         self.max_misses_lost = max_misses_lost
@@ -188,6 +202,9 @@ class TrackManager():
                 continue  # FP de pocos frames
             if t.misses > self.max_misses_delete:
                 continue
+            t.update_still(self.still_move)
+            if t.still_frames > self.max_still_frames:
+                continue  # lleva mucho tiempo sin moverse
             if t.state == CONFIRMED and t.misses > self.max_misses_lost:
                 t.state = LOST
             # el ROI ya esta fuera

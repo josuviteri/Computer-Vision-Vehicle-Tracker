@@ -1,9 +1,11 @@
 """
-Proyect entry point
+Project entry point
 python src/main.py --url <url>
 
-proposed url:
+proposed urls:
     https://www.youtube.com/watch?v=Jy1Y9f8NEY0
+    https://www.youtube.com/watch?v=4cA_-WAm-SE
+    https://www.youtube.com/watch?v=2juLrCH5w9U
 
 The more objects tracked at once, the slower the program will run. The detection frequency can be reduced with --detect-every N.
 
@@ -73,7 +75,7 @@ def main() -> int:
 
         if ok:
             if detector_instance is None:
-                detector_instance = detector.Detector(frame.shape, roi, min_area_frac=0.0005, max_area_frac=0.05)
+                detector_instance = detector.Detector(frame.shape, roi, min_area_frac=0.0001, max_area_frac=0.05)
                 manager = tracker.TrackManager(roi, tracker_type=args.tracker)
 
             # Primero detectar/trackear sobre el frame limpio; el overlay se dibuja despues

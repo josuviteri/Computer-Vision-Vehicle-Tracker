@@ -1,6 +1,10 @@
 ***
 
-# Detector y Rastreo de Vehículos - Visión por Computador
+<img src="docs/assets/banner_image.png" alt="car" width="250">
+<img src="docs/assets/banner_image_2.png" alt="car" width="250">
+
+---
+# Object Detection and Tracking for Streaming Vigilance Systems 
 
 Sistema de visión por computador capaz de detectar, rastrear y contar objetos (como vehículos en un cruce) visibles desde una cámara fija emitiendo en vivo, utilizando técnicas clásicas de procesamiento de video.
 
