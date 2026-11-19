@@ -4,15 +4,14 @@ import numpy as np
 
 
 Point = tuple[int, int]
-Rectangle = np.ndarray  # int32 array of shape (4, 2): the four clicked corners
 
 class RoiSelector:
-    """Select a quadrilateral ROI by clicking its four corners."""
+    """Select a rectangular ROI by clicking its four corners."""
 
     def __init__(self, frame):
         self.frame = frame
         self.points: list[Point] = []
-        self.roi: Optional[Rectangle] = None
+        self.roi: np.ndarray = None
 
     def _mouse_callback(self, event, x, y, flags, param):
         if event != cv2.EVENT_LBUTTONDOWN or len(self.points) >= 4:
@@ -24,7 +23,7 @@ class RoiSelector:
         if len(self.points) == 4:
             self.roi = np.array(self.points, dtype=np.int32)
 
-    def select(self, window_name: str = "ROI Selection") -> Optional[Rectangle]:
+    def select(self, window_name: str = "ROI Selection") -> np.ndarray:
         """Display the frame until four corners are selected or selection is cancelled."""
         if self.frame is None:
             raise ValueError("A frame is required to select an ROI")
