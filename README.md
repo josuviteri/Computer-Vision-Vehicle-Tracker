@@ -1,7 +1,8 @@
 ***
 
-<img src="docs/assets/banner_image.png" alt="car" width="250">
-<img src="docs/assets/banner_image_2.png" alt="car" width="250">
+<img src="docs/assets/banner_image_1.png" alt="car" width="215">
+<img src="docs/assets/banner_image_2.png" alt="car" width="215">
+<img src="docs/assets/banner_image_3.png" alt="car" width="215">
 
 ---
 # Object Detection and Tracking for Streaming Vigilance Systems 
@@ -113,6 +114,7 @@ Sobre el vídeo se dibuja el ROI, el bounding box y el ID de cada vehículo conf
 * **Maniobras bruscas:** pueden hacer fallar a KCF, se mitiga con Kalman y la recuperación de tracks `LOST`.
 * **Iluminación:** la sustracción de fondo es sensible a cambios fuertes de luz y a movimientos de cámara, aunque en los streams propuestos no se esperan.
 * **Latencia:** el prebuffer del stream introduce un retraso fijo de unos segundos respecto al directo.
+* **Calidad:** Dependiendo del algoritmo de tracking elegido y cada cuantos frames se actualiza, la calidad de los resultados puede mejorar o detectar el mismo objeto varias veces.
 
 ## Referencias
 
