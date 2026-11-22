@@ -56,16 +56,22 @@ Con el filtro de Kalman activo, se proponen estos valores de partida (a ~30 fps)
 ## Estructura del Proyecto
 
 ```
-src/
-  main.py          # Punto de entrada (CLI)
-  stream.py        # Resolución de URL (yt-dlp) y lector de stream en hilo con prebuffer y reconexión
-  roi_selector.py  # Selección interactiva del ROI (polígono) sobre el primer frame
-  detector.py      # Sustracción de fondo + morfología -> lista de Detection
-  tracker.py       # Track (KCF + Kalman) y TrackManager (asociación, ciclo de vida, conteo)
-  analytics.py     # (pendiente) homografía, velocidad, dirección
-  draw.py          # (pendiente) overlay / HUD
-original_experiments/   # Enfoques iniciales (referencia)
-PLAN.md                 # Plan de mejora por fases
+.
+├── CODE_OF_CONDUCT.md
+├── LICENSE
+├── README.md
+├── configs                 # ROIs preconfigurados para el port-forwarding                
+├── docs                    # assets de documentación
+├── original_experiments    # experimentos del release v1.0
+├── requirements.txt        # dependencias
+└── src                     # source code
+    ├── detector.py         # Sustracción de fondo
+    ├── draw.py             # overlay / HUD
+    ├── main.py             # Punto de entrada único
+    ├── roi_selector.py     # Selección interactiva del ROI (rectángular) sobre el primer frame recibido
+    ├── stream.py           # Resolución de URL y lector de stream en hilo con prebuffer y reconexión
+    ├── tracker.py          # Track (KCF/CSRT + Kalman) y TrackManager (asociación, ciclo de vida de ID, contador...)
+    └── web_view.py         # port-forwarding al navegador
 ```
 
 ## Instalación
