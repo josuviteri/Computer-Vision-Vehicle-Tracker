@@ -1,6 +1,6 @@
 ***
 
-<img src="docs/assets/banner_image_1.png" alt="car" width="225"><img src="docs/assets/banner_image_2.png" alt="car" width="225"><img src="docs/assets/banner_image_3.png" alt="car" width="225">
+<img src="docs/assets/banner_image_1.png" alt="car" width="250"><img src="docs/assets/banner_image_2.png" alt="car" width="250"><img src="docs/assets/banner_image_3.png" alt="car" width="250">
 
 ---
 # Object Detection and Tracking for Streaming Vigilance Systems 

@@ -69,7 +69,8 @@ def main() -> int:
             return 1
         else:
             selector = roi_selector.RoiSelector(first_frame)
-            roi = selector.select()  # lee un frame para seleccionar el ROI
+            # lee un frame para seleccionar el ROI
+            roi = selector.select()  
             if roi is not None and args.roi:
                 os.makedirs(os.path.dirname(args.roi) or ".", exist_ok=True)
                 with open(args.roi, "w") as f:
@@ -83,11 +84,13 @@ def main() -> int:
         print("Could not read first frame")
         return 1
 
-    reader.start()  # inicia el hilo de lectura de frames
+    # inicia el hilo de lectura de frames
+    reader.start()  
     server = web_view.FrameServer(args.serve, "127.0.0.1") if args.serve is not None else None
 
     read = True
-    detector_instance = None  # se crea una sola vez para conservar el modelo de fondo
+    # se crea una sola vez para conservar el modelo de fondo
+    detector_instance = None  
     manager = None
     n = 0
     try:
@@ -114,7 +117,8 @@ def main() -> int:
                     server.update(frame)
                 else:
                     cv2.imshow("Stream", frame)
-                print(f"\rFrame ID: {frame_id}, video_time: {video_time:.3f}s, Total: {manager.total_count}, Active: {len(manager.confirmed)}", end="", flush=True) # ahora la terminal no se llena de prints y se actualiza en la misma linea
+                # ahora la terminal no se llena de prints y se actualiza en la misma linea
+                print(f"\rFrame ID: {frame_id}, video_time: {video_time:.3f}s, Total: {manager.total_count}, Active: {len(manager.confirmed)}", end="", flush=True) 
 
             if server is None and cv2.waitKey(1) & 0xFF == ord("q"):
                 read = False
