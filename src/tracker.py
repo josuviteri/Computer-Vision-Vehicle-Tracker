@@ -8,6 +8,8 @@ Kalman (velocidad constante): donde DEBERIA estar
 Estados: TENTATIVE -> CONFIRMED (los que se cuentan) -> LOST -> despues se elimina
 """
 
+from collections import deque
+
 import cv2
 import numpy as np
 from scipy.optimize import linear_sum_assignment
@@ -46,6 +48,7 @@ class Track():
         self.history = [center(self.bbox)]
         self.anchor = self.history[0]  # ultima posicion "significativa"
         self.still_frames = 0
+        self.trail = deque(maxlen=200)  # puntos de trayectoria
 
         cx, cy = center(self.bbox)
         kf = cv2.KalmanFilter(4, 2)  # estado (cx, cy, vx, vy), medida (cx, cy)
@@ -60,6 +63,15 @@ class Track():
         self.pred = (cx, cy)
 
         self._init_kcf(frame, self.bbox)
+
+    @property
+    def speed(self) -> float:
+        # Modulo de la velocidad en base al modelo del Kalman, en pxixels por frame
+        return float(np.hypot(self.kalman.statePost[2, 0], self.kalman.statePost[3, 0]))
+
+    def add_trail_point(self):
+        cx, cy = center(self.bbox)
+        self.trail.append((int(cx), int(cy)))
 
     # --- KCF / CSRT ---
     def _init_kcf(self, frame, bbox):
@@ -154,6 +166,10 @@ class TrackManager():
 
         self._lifecycle()
         self._merge_duplicates()
+
+        if detections is not None:  # un punto de trayectoria por cada frame en el que se detecta
+            for t in self.confirmed:
+                t.add_trail_point()
 
     def _associate(self, frame, detections):
         unmatched = set(range(len(detections)))

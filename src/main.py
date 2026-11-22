@@ -29,6 +29,7 @@ import stream
 import roi_selector
 import detector
 import tracker
+import draw
 
 
 def main() -> int:
@@ -85,9 +86,7 @@ def main() -> int:
 
             cv2.polylines(frame, [roi], isClosed=True, color=(0, 255, 255), thickness=2)
             for track in manager.confirmed:
-                x, y, w, h = track.bbox
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                cv2.putText(frame, str(track.id), (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                draw.draw_track(frame, track)
             cv2.putText(frame, f"Total: {manager.total_count}  Activos: {len(manager.confirmed)}",
                         (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
             

@@ -121,7 +121,7 @@ Sobre el vídeo se dibuja el ROI, el bounding box y el ID de cada vehículo conf
 
 * **Oclusiones:** aglomeraciones de vehículos muy próximos pueden fusionarse en una sola detección e incluso transferirse entre objetos manteniendo el ID al salirse uno de ellos del ROI.
 * **Maniobras bruscas:** pueden hacer fallar a KCF, se mitiga con Kalman y la recuperación de tracks `LOST`.
-* **Iluminación:** la sustracción de fondo es sensible a cambios fuertes de luz y a movimientos de cámara, aunque en los streams propuestos no se esperan.
+* **Iluminación:** la sustracción de fondo es sensible a cambios fuertes de luz y a movimientos de cámara, aunque en los streams propuestos no se esperan. Uno de los mayoras limitantes es la deteccion de objetos pequeños (como personas vistiendo de negro) en una imagen oscura (brillo reducido). Uno de los streams propuestos trata de un cruce en Japón, el cual se encuentra 5 horas adelantado respecto a nuestro horario, por lo que es un buen ejemplo para probar el algoritmo en un paso de peatones en condiciones de visibilidad reducida.  
 * **Sombras:** Se ha observado que las sombras que aparecen por la tarde y la luz de los faros por la noche, se incluyen como parte de los objetos en movimiento y se incluyen en los bounding-boxes, lo que resulta en detecciones de areas superiores a lo que sería el objeto.
 * **Latencia:** el prebuffer del stream introduce un retraso fijo de unos segundos respecto al directo.
 * **Calidad:** Dependiendo del algoritmo de tracking elegido y cada cuantos frames se actualiza, la calidad de los resultados puede mejorar o detectar el mismo objeto varias veces.
