@@ -89,10 +89,44 @@ python src/main.py
 | `--fps` | FPS de reserva si el stream no informa los suyos | `30` |
 | `--detect-every` | Extraer detecciones cada N frames | `3` |
 | `--tracker` | Tipo de tracker: `KCF` o `CSRT` | `KCF` |
+| `--roi` | JSON con el ROI: se carga si existe, y si no se selecciona con el ratón y se guarda | — |
+| `--serve` | Puerto en el que mostrar la ejecución, para poder verlo en el buscador en lugar de abrir una ventana opencv | — |
 
-Al ejecutarse se muestra el primer frame para dibujar el ROI clickando los bordes del rectángulo deseado. 
+Sin `--roi`, al ejecutarse, primero se pide seleccionar el ROI clickando las cuatro esquinas de un rectangulo.
 
 Pulsa `q` en la ventana o `CTRL + C` en la terminal para salir.
+
+### ROIs predefinidos
+
+En `configs/` hay ROIs ya seleccionados para los tres streams propuestos:
+
+| Escena | URL | ROI (`--roi`) |
+|---|---|---|
+| Carretera 1 | https://www.youtube.com/watch?v=Jy1Y9f8NEY0 | `configs/carretera_1.json` |
+| Cruce 2 | https://www.youtube.com/watch?v=4cA_-WAm-SE | `configs/cruce_2_1.json`, `configs/cruce-2_2.json`, `configs/cruce_2_3.json` (dos pasos de peatones y un cruce) |
+| Cruce 3 | https://www.youtube.com/watch?v=2juLrCH5w9U | `configs/cruce-3.json` |
+
+```bash
+python src/main.py --url https://www.youtube.com/watch?v=4cA_-WAm-SE --roi configs/cruce_2_1.json
+```
+
+### Ver el resultado desde el navegador
+
+Es necesario tener un archivo de configuracion en formato JSON guardado previamente, se puede crear usando --roi , sin --serve
+
+```bash
+python src/main.py --roi configs/nombre_roi.json
+```
+Desplegar: 
+```bash
+python src/main.py --serve 8000 --roi configs/carretera_1.json
+# abrir http://localhost:8000
+```
+
+
+
+
+Se detiene con `CTRL + C`.
 
 ## Lógica del Sistema
 
