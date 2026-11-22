@@ -40,7 +40,18 @@ Tres fuentes de información se combinan y cada una responde a una pregunta dist
 La idea clave es que *un objeto no desaparece de repente*: si KCF falla en un frame, el track no se elimina, sigue avanzando con la predicción de Kalman y puede recuperarse al volver a ser detectado.
 
 ### Elección del tracker
-Se evaluaron los trackers de OpenCV (`BOOSTING`, `MIL`, `TLD`, `MEDIANFLOW`, `GOTURN`, `MOSSE`, `CSRT`, `KCF`). Se usa **KCF** por defecto por su equilibrio entre velocidad y precisión, **CSRT** está disponible con `--tracker CSRT` (más preciso, más lento).
+Se evaluaron los trackers de OpenCV (`BOOSTING`, `MIL`, `TLD`, `MEDIANFLOW`, `GOTURN`, `MOSSE`, `CSRT`, `KCF`). Se usa **KCF** por defecto por su equilibrio entre velocidad y precisión, **CSRT** está disponible con `--tracker CSRT` (alrededor de un 30% más preciso, 3 veces más lento).
+
+### Frecuencia de detección (`--detect-every`)
+Con el filtro de Kalman activo, se proponen estos valores de partida (a ~30 fps):
+
+| Tracker | `--detect-every` | Rango | Motivo |
+|---|---|---|---|
+| **KCF** | 3 | 2–4 | Rápido pero no muy robusto a los cambios de escala. |
+| **CSRT** | 6 | 5–10 | Más robusto frente a cambios de escala y oclusión parcial, por lo que mantiene un buen bounding-box más tiempo. |
+
+- Kalman rellena huecos y suaviza el tracking, pero solo es un modelo de movimiento (no corrige escala ni apariencia). Por encima de ~10 frames de velocidad constante falla en frenadas y giros.
+
 
 ## Estructura del Proyecto
 
@@ -108,9 +119,10 @@ Sobre el vídeo se dibuja el ROI, el bounding box y el ID de cada vehículo conf
 
 ## Limitaciones Conocidas
 
-* **Oclusiones:** aglomeraciones de vehículos muy próximos pueden fusionarse en una sola detección.
+* **Oclusiones:** aglomeraciones de vehículos muy próximos pueden fusionarse en una sola detección e incluso transferirse entre objetos manteniendo el ID al salirse uno de ellos del ROI.
 * **Maniobras bruscas:** pueden hacer fallar a KCF, se mitiga con Kalman y la recuperación de tracks `LOST`.
 * **Iluminación:** la sustracción de fondo es sensible a cambios fuertes de luz y a movimientos de cámara, aunque en los streams propuestos no se esperan.
+* **Sombras:** Se ha observado que las sombras que aparecen por la tarde y la luz de los faros por la noche, se incluyen como parte de los objetos en movimiento y se incluyen en los bounding-boxes, lo que resulta en detecciones de areas superiores a lo que sería el objeto.
 * **Latencia:** el prebuffer del stream introduce un retraso fijo de unos segundos respecto al directo.
 * **Calidad:** Dependiendo del algoritmo de tracking elegido y cada cuantos frames se actualiza, la calidad de los resultados puede mejorar o detectar el mismo objeto varias veces.
 
